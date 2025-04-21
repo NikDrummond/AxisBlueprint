@@ -214,9 +214,6 @@ class LayoutDesigner:
 
         self.grid_spacing_cm = 0.5
         self.margin_cm = 1.0
-        self.dynamic_canvas = False
-        self.canvas_width_cm = A4_WIDTH_CM
-        self.canvas_height_cm = A4_HEIGHT_CM
 
         self.toolbar = tk.Frame(master)
         self.toolbar.pack(side=tk.TOP, fill=tk.X)
@@ -246,12 +243,14 @@ class LayoutDesigner:
         tk.Radiobutton(self.mode_frame, text="Move", variable=self.mode, value="move").pack(anchor="w")
         tk.Radiobutton(self.mode_frame, text="Resize", variable=self.mode, value="resize").pack(anchor="w")
 
+        # Manual controls for selected axis
         tk.Label(self.mode_frame, text="Selected Axis Bounds (cm)").pack(pady=(15, 0))
         self.entry_x = self._add_labeled_entry("X:", self.mode_frame)
         self.entry_y = self._add_labeled_entry("Y:", self.mode_frame)
         self.entry_w = self._add_labeled_entry("Width:", self.mode_frame)
         self.entry_h = self._add_labeled_entry("Height:", self.mode_frame)
 
+        # Margin and grid spacing controls
         tk.Label(self.mode_frame, text="Margin (cm)").pack(pady=(15, 0))
         self.entry_margin = tk.Entry(self.mode_frame, width=10)
         self.entry_margin.insert(0, str(self.margin_cm))
@@ -263,9 +262,6 @@ class LayoutDesigner:
         self.entry_grid.insert(0, str(self.grid_spacing_cm))
         self.entry_grid.pack()
         self.entry_grid.bind("<Return>", lambda e: self._update_grid())
-
-        self.btn_fit = tk.Button(self.mode_frame, text="Fit Canvas to Axes", command=self.fit_canvas_to_axes)
-        self.btn_fit.pack(pady=(10, 0))
 
         self.canvas.bind("<Button-1>", self.on_mouse_down)
         self.canvas.bind("<B1-Motion>", self.on_mouse_move)
@@ -316,30 +312,6 @@ class LayoutDesigner:
         except ValueError:
             pass
 
-    def fit_canvas_to_axes(self):
-        if not self.boxes:
-            return
-        min_x = min(box.x for box in self.boxes)
-        min_y = min(box.y for box in self.boxes)
-        max_x = max(box.x + box.width for box in self.boxes)
-        max_y = max(box.y + box.height for box in self.boxes)
-
-        def round_up(val):
-            return ((val + self.grid_spacing_cm - 1e-5) // self.grid_spacing_cm + 1) * self.grid_spacing_cm
-
-        def round_down(val):
-            return ((val + 1e-5) // self.grid_spacing_cm) * self.grid_spacing_cm
-
-        width = round_up(max_x + self.margin_cm) - round_down(min_x - self.margin_cm)
-        height = round_up(max_y + self.margin_cm) - round_down(min_y - self.margin_cm)
-
-        self.canvas_width_cm = max(width, self.margin_cm * 2 + 1)
-        self.canvas_height_cm = max(height, self.margin_cm * 2 + 1)
-        self.dynamic_canvas = True
-
-        self.canvas.config(width=int(self.canvas_width_cm * SCALE), height=int(self.canvas_height_cm * SCALE))
-        self.redraw()
-
     def init_default_layout(self):
         margin = self.margin_cm
         spacing = 0.5
@@ -365,22 +337,18 @@ class LayoutDesigner:
                 json.dump(layout_data, f, indent=2)
 
     def redraw(self):
-        canvas_width_px = int(self.canvas_width_cm * SCALE)
-        canvas_height_px = int(self.canvas_height_cm * SCALE)
-        self.canvas.config(width=canvas_width_px, height=canvas_height_px)
         self.canvas.delete("all")
-
         step = int(SCALE * self.grid_spacing_cm)
-        for i in range(0, canvas_width_px, step):
-            self.canvas.create_line(i, 0, i, canvas_height_px, fill="#eeeeee")
-        for j in range(0, canvas_height_px, step):
-            self.canvas.create_line(0, j, canvas_width_px, j, fill="#eeeeee")
+        for i in range(0, CANVAS_WIDTH, step):
+            self.canvas.create_line(i, 0, i, CANVAS_HEIGHT, fill="#eeeeee")
+        for j in range(0, CANVAS_HEIGHT, step):
+            self.canvas.create_line(0, j, CANVAS_WIDTH, j, fill="#eeeeee")
 
         m = self.margin_cm * SCALE
-        self.canvas.create_line(m, 0, m, canvas_height_px, fill="black")
-        self.canvas.create_line(canvas_width_px - m, 0, canvas_width_px - m, canvas_height_px, fill="black")
-        self.canvas.create_line(0, m, canvas_width_px, m, fill="black")
-        self.canvas.create_line(0, canvas_height_px - m, canvas_width_px, canvas_height_px - m, fill="black")
+        self.canvas.create_line(m, 0, m, CANVAS_HEIGHT, fill="black")
+        self.canvas.create_line(CANVAS_WIDTH - m, 0, CANVAS_WIDTH - m, CANVAS_HEIGHT, fill="black")
+        self.canvas.create_line(0, m, CANVAS_WIDTH, m, fill="black")
+        self.canvas.create_line(0, CANVAS_HEIGHT - m, CANVAS_WIDTH, CANVAS_HEIGHT - m, fill="black")
 
         for i, box in enumerate(self.boxes):
             x1 = box.x * SCALE
@@ -408,8 +376,6 @@ class LayoutDesigner:
         else:
             for entry in [self.entry_x, self.entry_y, self.entry_w, self.entry_h]:
                 entry.delete(0, tk.END)
-
-                
     def on_mouse_down(self, event):
         x_cm = event.x / SCALE
         y_cm = event.y / SCALE

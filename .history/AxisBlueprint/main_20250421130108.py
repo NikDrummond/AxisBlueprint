@@ -246,12 +246,14 @@ class LayoutDesigner:
         tk.Radiobutton(self.mode_frame, text="Move", variable=self.mode, value="move").pack(anchor="w")
         tk.Radiobutton(self.mode_frame, text="Resize", variable=self.mode, value="resize").pack(anchor="w")
 
+        # Manual controls for selected axis
         tk.Label(self.mode_frame, text="Selected Axis Bounds (cm)").pack(pady=(15, 0))
         self.entry_x = self._add_labeled_entry("X:", self.mode_frame)
         self.entry_y = self._add_labeled_entry("Y:", self.mode_frame)
         self.entry_w = self._add_labeled_entry("Width:", self.mode_frame)
         self.entry_h = self._add_labeled_entry("Height:", self.mode_frame)
 
+        # Margin and grid spacing controls
         tk.Label(self.mode_frame, text="Margin (cm)").pack(pady=(15, 0))
         self.entry_margin = tk.Entry(self.mode_frame, width=10)
         self.entry_margin.insert(0, str(self.margin_cm))
@@ -325,16 +327,16 @@ class LayoutDesigner:
         max_y = max(box.y + box.height for box in self.boxes)
 
         def round_up(val):
-            return ((val + self.grid_spacing_cm - 1e-5) // self.grid_spacing_cm + 1) * self.grid_spacing_cm
+            return ((val + self.grid_spacing_cm - 1e-5) // self.grid_spacing_cm) * self.grid_spacing_cm
 
         def round_down(val):
-            return ((val + 1e-5) // self.grid_spacing_cm) * self.grid_spacing_cm
+            return (val // self.grid_spacing_cm) * self.grid_spacing_cm
 
-        width = round_up(max_x + self.margin_cm) - round_down(min_x - self.margin_cm)
-        height = round_up(max_y + self.margin_cm) - round_down(min_y - self.margin_cm)
+        width = round_up(max_x - min_x)
+        height = round_up(max_y - min_y)
 
-        self.canvas_width_cm = max(width, self.margin_cm * 2 + 1)
-        self.canvas_height_cm = max(height, self.margin_cm * 2 + 1)
+        self.canvas_width_cm = width
+        self.canvas_height_cm = height
         self.dynamic_canvas = True
 
         self.canvas.config(width=int(self.canvas_width_cm * SCALE), height=int(self.canvas_height_cm * SCALE))
@@ -409,7 +411,6 @@ class LayoutDesigner:
             for entry in [self.entry_x, self.entry_y, self.entry_w, self.entry_h]:
                 entry.delete(0, tk.END)
 
-                
     def on_mouse_down(self, event):
         x_cm = event.x / SCALE
         y_cm = event.y / SCALE

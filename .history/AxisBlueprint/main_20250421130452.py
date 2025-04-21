@@ -246,12 +246,14 @@ class LayoutDesigner:
         tk.Radiobutton(self.mode_frame, text="Move", variable=self.mode, value="move").pack(anchor="w")
         tk.Radiobutton(self.mode_frame, text="Resize", variable=self.mode, value="resize").pack(anchor="w")
 
+        # Manual controls for selected axis
         tk.Label(self.mode_frame, text="Selected Axis Bounds (cm)").pack(pady=(15, 0))
         self.entry_x = self._add_labeled_entry("X:", self.mode_frame)
         self.entry_y = self._add_labeled_entry("Y:", self.mode_frame)
         self.entry_w = self._add_labeled_entry("Width:", self.mode_frame)
         self.entry_h = self._add_labeled_entry("Height:", self.mode_frame)
 
+        # Margin and grid spacing controls
         tk.Label(self.mode_frame, text="Margin (cm)").pack(pady=(15, 0))
         self.entry_margin = tk.Entry(self.mode_frame, width=10)
         self.entry_margin.insert(0, str(self.margin_cm))
@@ -330,8 +332,8 @@ class LayoutDesigner:
         def round_down(val):
             return ((val + 1e-5) // self.grid_spacing_cm) * self.grid_spacing_cm
 
-        width = round_up(max_x + self.margin_cm) - round_down(min_x - self.margin_cm)
-        height = round_up(max_y + self.margin_cm) - round_down(min_y - self.margin_cm)
+        width = round_up(max_x) - round_down(min_x)
+        height = round_up(max_y) - round_down(min_y)
 
         self.canvas_width_cm = max(width, self.margin_cm * 2 + 1)
         self.canvas_height_cm = max(height, self.margin_cm * 2 + 1)
