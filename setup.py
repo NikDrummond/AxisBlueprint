@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'axisblueprint=axisblueprint.main:BlueprintBuilder',
+            'axisblueprint=AxisBlueprint.main:BlueprintBuilder',
         ],
     },
     author="Nik Drummond",

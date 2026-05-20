@@ -24,12 +24,28 @@
 - **Matplotlib Code Generation:**  
   Automatically generate Matplotlib code that recreates your design for further plotting.
 
-## Installation
+- **Workflow:** Undo/redo (**Edit** menu and Ctrl+Z / Ctrl+Y), keyboard shortcuts (Delete, Ctrl+S, arrow keys to nudge by grid step), **Open Recent** and **Open Templates Folder** under **File**.
+
+- **Selection:** Shift+click to multi-select; drag on empty canvas to rubber-band select. Align and distribute use the selection when it is non-empty, otherwise all panels.
+
+- **Layout aids:** Snap-to-guides while moving a single panel, orange outline when panels overlap, **Rotate 90° CW** under **Layout**.
+
+- **Margins:** Per-side margins (cm) stored in the layout JSON; **Set Margins** opens a four-field dialog.
+
+- **Layout file format:** JSON includes `"version": 1` and `canvas.margins` for forward compatibility.
 
 Install AxisBlueprint directly from GitHub using pip:
 
 ```bash
 pip install git+https://github.com/yourusername/AxisBlueprint.git@main
+```
+
+For `FigureFromLayout` and generated Matplotlib previews, install the optional plotting dependency:
+
+```bash
+pip install "axisblueprint[plot]"
+# or from a clone:
+pip install -e ".[plot]"
 ```
 
 ## Usage
@@ -68,9 +84,13 @@ from axisblueprint.main import FigureFromLayout
 fig, axes = FigureFromLayout("default")
 ```
 
-Changing `default` to your saved layout name. This creates a `matplotlig.Figure` object, and a `List` which is the list of your ordered `matplotlib.axes` objects.
+Changing `default` to your saved layout name. This creates a `matplotlib.Figure` object, and a `List` which is the list of your ordered `matplotlib.axes` objects.
 
-## Contributing
+Layouts are read from the default templates directory unless you pass a second argument: a path to a folder that contains your `*.json` layout files (for example a project-specific `layouts/` directory):
+
+```python
+fig, axes = FigureFromLayout("my_layout", "/path/to/my/layouts")
+```
 
 Contributions are welcome! Please open issues or submit pull requests for bug fixes or feature improvements.
 
