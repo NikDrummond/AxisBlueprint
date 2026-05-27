@@ -67,7 +67,7 @@ class LayoutDesigner:
         self.master = master
         master.title("AxisBlueprint")
 
-        self.grid_spacing_cm = 0.5
+        self.grid_spacing_cm = 0.2
         self.margin_left = 1.0
         self.margin_right = 1.0
         self.margin_top = 1.0

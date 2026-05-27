@@ -35,9 +35,9 @@ JOURNAL_WIDTH_PRESETS = [
 
 def default_panel_label(index):
     """Return A, B, … Z, then AA, AB, … for panel index (0-based)."""
-    label = ""
+    label = "."
     n = index + 1
     while n:
         n, rem = divmod(n - 1, 26)
-        label = chr(65 + rem) + label
+        label = chr(ord('a') + rem) + label
     return label

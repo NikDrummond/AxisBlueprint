@@ -41,7 +41,7 @@ def generate_matplotlib_code(boxes, page_width_cm, page_height_cm):
             label = box.panel_label.replace("\\", "\\\\").replace('"', '\\"')
             code_lines.append(
                 f'ax{i + 1}.text(0.02, 0.98, "{label}", transform=ax{i + 1}.transAxes, '
-                f"fontsize=12, fontweight='bold', va='top', ha='left')"
+                f"fontweight='bold', va='top', ha='left')"
             )
     code_lines.append("plt.show()")
     return "\n".join(code_lines)
@@ -97,10 +97,9 @@ def figure_from_layout(layout_name, layouts_dir=None):
         if box.panel_label:
             ax.text(
                 0.02,
-                0.98,
+                1.05,
                 box.panel_label,
                 transform=ax.transAxes,
-                fontsize=12,
                 fontweight="bold",
                 va="top",
                 ha="left",
