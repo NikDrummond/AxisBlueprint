@@ -34,12 +34,14 @@ from .dialogs import (
     PreviewDialog,
     ResizeCanvasDialog,
     SaveTemplateDialog,
+    SettingsDialog,
 )
 from .export import generate_matplotlib_code
 from .geometry import overlapping_box_indices, snap_move_to_guides
 from .layout import build_layout_document, parse_layout_data, snap_to_grid
 from .models import AxisBox
 from .recent_layouts import add_recent_path, load_recent_paths
+from .settings import load_settings, save_settings
 from .templates import get_templates_dir
 
 SNAP_GUIDE_CM = 0.25
@@ -65,16 +67,19 @@ def _open_folder(path):
 class LayoutDesigner:
     def __init__(self, master):
         self.master = master
-        master.title("AxisBlueprint")
+        self._current_filepath = None
 
-        self.grid_spacing_cm = 0.2
-        self.margin_left = 1.0
-        self.margin_right = 1.0
-        self.margin_top = 1.0
-        self.margin_bottom = 1.0
+        settings = load_settings()
+        margins = settings.get("default_margins", {})
+
+        self.grid_spacing_cm = settings.get("default_grid_spacing_cm", 0.2)
+        self.margin_left = margins.get("left", 1.0)
+        self.margin_right = margins.get("right", 1.0)
+        self.margin_top = margins.get("top", 1.0)
+        self.margin_bottom = margins.get("bottom", 1.0)
         self.dynamic_canvas = False
-        self.canvas_width_cm = A4_WIDTH_CM
-        self.canvas_height_cm = A4_HEIGHT_CM
+        self.canvas_width_cm = settings.get("default_canvas_width_cm", A4_WIDTH_CM)
+        self.canvas_height_cm = settings.get("default_canvas_height_cm", A4_HEIGHT_CM)
 
         self._selection = []
         self._undo_stack = []
@@ -84,6 +89,8 @@ class LayoutDesigner:
         self._rubber = None
         self._rubber_rect_id = None
         self._multi_base = None
+
+        self._update_title()
 
         self._build_menubar()
 
@@ -147,6 +154,14 @@ class LayoutDesigner:
         self.save_default_template()
         self.redraw()
 
+    def _update_title(self):
+        base = "AxisBlueprint"
+        if self._current_filepath:
+            name = os.path.basename(self._current_filepath)
+            self.master.title(f"{base} - {name}")
+        else:
+            self.master.title(base)
+
     @property
     def selected_box(self):
         return self._selection[-1] if self._selection else None
@@ -161,7 +176,9 @@ class LayoutDesigner:
 
         self._file_menu = tk.Menu(menubar, tearoff=0, postcommand=self._refresh_recent_menu)
         self._file_menu.add_command(label="Load", command=self.load_layout)
-        self._file_menu.add_command(label="Save", command=self.save_layout)
+        self._file_menu.add_command(label="Save", command=self.save_layout, accelerator="Ctrl+S")
+        self._file_menu.add_command(label="Save As...", command=self.save_layout_as)
+        self._file_menu.add_command(label="Save as Default Template", command=self.save_as_default_template)
         self._recent_menu = tk.Menu(self._file_menu, tearoff=0)
         self._file_menu.add_cascade(label="Open Recent", menu=self._recent_menu)
         self._file_menu.add_command(
@@ -170,6 +187,8 @@ class LayoutDesigner:
         self._file_menu.add_separator()
         self._file_menu.add_command(label="Preview JSON", command=self.preview_json)
         self._file_menu.add_command(label="Preview Code", command=self.preview_code)
+        self._file_menu.add_separator()
+        self._file_menu.add_command(label="Settings", command=self.open_settings)
         menubar.add_cascade(label="File", menu=self._file_menu)
 
         canvas_menu = tk.Menu(menubar, tearoff=0)
@@ -247,7 +266,9 @@ class LayoutDesigner:
                 data = json.load(f)
             doc = parse_layout_data(data)
             self.apply_document(doc)
+            self._current_filepath = path
             add_recent_path(path)
+            self._update_title()
             self.redraw()
         except (ValueError, json.JSONDecodeError, OSError) as e:
             messagebox.showerror("Error", f"Failed to load layout:\n{e}")
@@ -418,11 +439,57 @@ class LayoutDesigner:
 
     def save_layout(self):
         json_str = json.dumps(self.get_layout_document(), indent=2)
-        SaveTemplateDialog(
-            self.master,
-            json_str,
-            on_saved=lambda path: add_recent_path(path),
+        if self._current_filepath:
+            try:
+                with open(self._current_filepath, "w") as f:
+                    f.write(json_str)
+                add_recent_path(self._current_filepath)
+                self._update_title()
+            except OSError as e:
+                messagebox.showerror("Error", f"Failed to save layout:\n{e}")
+        else:
+            self.save_layout_as()
+
+    def save_layout_as(self):
+        json_str = json.dumps(self.get_layout_document(), indent=2)
+        templates_dir = get_templates_dir()
+        filename = filedialog.asksaveasfilename(
+            initialdir=templates_dir,
+            title="Save Layout As",
+            defaultextension=".json",
+            filetypes=(("JSON Files", "*.json"),),
         )
+        if filename:
+            try:
+                with open(filename, "w") as f:
+                    f.write(json_str)
+                self._current_filepath = filename
+                add_recent_path(filename)
+                self._update_title()
+            except OSError as e:
+                messagebox.showerror("Error", f"Failed to save layout:\n{e}")
+
+    def save_as_default_template(self):
+        templates_dir = get_templates_dir()
+        path = os.path.join(templates_dir, "default.json")
+        try:
+            with open(path, "w") as f:
+                json.dump(self.get_layout_document(), f, indent=2)
+            messagebox.showinfo("Success", "Current layout saved as default template.")
+        except OSError as e:
+            messagebox.showerror("Error", f"Failed to save default template:\n{e}")
+
+    def open_settings(self):
+        current = load_settings()
+
+        def on_save(updated):
+            save_settings(updated)
+            messagebox.showinfo(
+                "Settings",
+                "Settings saved. They will take effect on the next launch.",
+            )
+
+        SettingsDialog(self.master, current, on_save=on_save)
 
     def resize_canvas_dialog(self):
         ResizeCanvasDialog(
@@ -551,6 +618,27 @@ class LayoutDesigner:
         self.redraw()
 
     def init_default_layout(self):
+        templates_dir = get_templates_dir()
+        default_path = os.path.join(templates_dir, "default.json")
+        if os.path.isfile(default_path):
+            try:
+                with open(default_path, "r") as f:
+                    data = json.load(f)
+                doc = parse_layout_data(data)
+                self.boxes = doc.boxes
+                self.canvas_width_cm = doc.width_cm
+                self.canvas_height_cm = doc.height_cm
+                self.margin_left = doc.margin_left
+                self.margin_right = doc.margin_right
+                self.margin_top = doc.margin_top
+                self.margin_bottom = doc.margin_bottom
+                self.dynamic_canvas = (
+                    doc.width_cm != A4_WIDTH_CM or doc.height_cm != A4_HEIGHT_CM
+                )
+                return
+            except (ValueError, json.JSONDecodeError, OSError):
+                pass
+
         ml, mr, mt, mb = (
             self.margin_left,
             self.margin_right,
@@ -906,7 +994,9 @@ class LayoutDesigner:
                     data = json.load(f)
                 doc = parse_layout_data(data)
                 self.apply_document(doc)
+                self._current_filepath = filename
                 add_recent_path(filename)
+                self._update_title()
                 self.redraw()
             except (ValueError, json.JSONDecodeError, OSError) as e:
                 messagebox.showerror("Error", f"Failed to load layout:\n{e}")

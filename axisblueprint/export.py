@@ -3,6 +3,8 @@
 import json
 import os
 
+import matplotlib.pyplot as plt
+
 from .constants import CM_PER_INCH
 from .layout import parse_layout_data
 from .templates import get_templates_dir
@@ -82,8 +84,6 @@ def figure_from_layout(layout_name, layouts_dir=None):
     boxes = doc.boxes
     page_width_cm = doc.width_cm
     page_height_cm = doc.height_cm
-
-    import matplotlib.pyplot as plt
 
     fig_width = page_width_cm / CM_PER_INCH
     fig_height = page_height_cm / CM_PER_INCH

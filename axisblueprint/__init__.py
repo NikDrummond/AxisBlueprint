@@ -2,7 +2,7 @@
 AxisBlueprint: A toolbox for designing scientific figure layouts.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from .app import BlueprintBuilder
 from .export import figure_from_layout

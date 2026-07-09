@@ -1,98 +1,156 @@
 # AxisBlueprint
 
-**AxisBlueprint** is a lightweight Python toolbox for interactively designing scientific figure layouts. With its easy-to-use Tkinter GUI, you can create, move, and resize axis boxes on an A4 template (with a half-centimeter grid) and then generate Matplotlib code to recreate your layout.
+[![PyPI - Version](https://img.shields.io/pypi/v/axisblueprint)](https://pypi.org/project/axisblueprint/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/axisblueprint)](https://pypi.org/project/axisblueprint/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub](https://img.shields.io/badge/github-NikDrummond/AxisBlueprint-blue?logo=github)](https://github.com/NikDrummond/AxisBlueprint)
 
-## Features
+**AxisBlueprint** is a lightweight Python toolbox for interactively designing multi-panel scientific figure layouts. Built with Tkinter, it provides a drag-and-drop GUI for arranging axis boxes on a grid, then exports Matplotlib code or renders the layout directly.
 
-- **Interactive Layout Design:**  
-  Create, duplicate, and remove axis boxes on a grid overlayed A4 template.
-  
-- **Move and Resize Modes:**  
-  Switch between "Move" and "Resize" modes via the side panel.  
-  - **Move Mode:** Drag a selected box to reposition it.  
-  - **Resize Mode:** Drag to change the size of a selected box while keeping its top–left corner fixed.
-  
-- **Snap-to-Grid Optimization:**  
-  Optimize your layout by snapping boxes to the nearest half-centimeter.
-  
-- **Save Layouts:**  
-  Use the **Preview JSON** button in order to get a preview of your layout. Once you have the preview, you can save your layout. Hitting **Save to Templates** will let you name your layout and saves it.
-
-- **Load Layouts:**
-  Using the **Load Layouts** button allows you to select one of your saved layouts and preview and edit it. 
-  
-- **Matplotlib Code Generation:**  
-  Automatically generate Matplotlib code that recreates your design for further plotting.
-
-- **Workflow:** Undo/redo (**Edit** menu and Ctrl+Z / Ctrl+Y), keyboard shortcuts (Delete, Ctrl+S, arrow keys to nudge by grid step), **Open Recent** and **Open Templates Folder** under **File**.
-
-- **Selection:** Shift+click to multi-select; drag on empty canvas to rubber-band select. Align and distribute use the selection when it is non-empty, otherwise all panels.
-
-- **Layout aids:** Snap-to-guides while moving a single panel, orange outline when panels overlap, **Rotate 90° CW** under **Layout**.
-
-- **Margins:** Per-side margins (cm) stored in the layout JSON; **Set Margins** opens a four-field dialog.
-
-- **Layout file format:** JSON includes `"version": 1` and `canvas.margins` for forward compatibility.
-
-Install AxisBlueprint directly from GitHub using pip:
+## Installation
 
 ```bash
-pip install git+https://github.com/yourusername/AxisBlueprint.git@main
+pip install axisblueprint
 ```
 
 For `FigureFromLayout` and generated Matplotlib previews, install the optional plotting dependency:
 
 ```bash
 pip install "axisblueprint[plot]"
-# or from a clone:
-pip install -e ".[plot]"
 ```
 
-## Usage
+### Requirements
 
-In a Jupyter Notebook (with Tkinter event loop enabled), run:
+- **Python 3.8+**
+- **Tkinter** (usually included with Python; on Ubuntu/Debian: `sudo apt install python3-tk`)
+- **Matplotlib** (optional, for `[plot]` extra)
+
+## Quick Start
+
+In a Jupyter Notebook (with Tkinter event loop enabled):
 
 ```python
 %gui tk
-from axisblueprint.main import BlueprintBuilder
+from axisblueprint import BlueprintBuilder
 BlueprintBuilder()
 ```
 
-## Using the GUI
+Or from the command line:
 
-1. **Select a box:**  
-Left-click on an axis box to select it. the selected box is highlighted in red and displays its numerical label.
-2. **Choose Interaction Mode:**  
-Use the radio buttons on the right panel to switch between **Move** and **Resize** modes: 
-    - **Move:** Drag the box and reposition it
-    - **Resize:** Drag to adjust the size of a box (the top left corner remains fixed)
-3. **Deselect a Box:**  
-Right-click anywhere on the canvas to deselect the current box.
-4. **Optimize the layout:**  
-click the **Optimize** button in order to snap all boxes to the nearest half centimetre as shown but the grid on the canvas
-5. **Save/Load Layout:**  
-Use the **Save** and **Load** buttons to import and export saved layouts.
-6. **Generate Matplotlib Code:**  
-click **Generate Code** to create a code snipped that reproduces your layout using matplotlib. Simply copy and paste this into a Jupyter Notebook cell, or other code, and use whatever code to generate your figures.
+```bash
+axisblueprint
+```
 
-## Matplotlib generation from Saved Layouts
+## Features
 
-Once you have a layout saved, you can generate it directly in python using:
+- **Interactive Layout Design** — Create, duplicate, and remove axis boxes on an A4 canvas with a half-centimeter grid overlay.
+- **Move & Resize Modes** — Drag boxes to reposition them, or resize from the top-left corner.
+- **Snap-to-Grid** — Optimize your layout by snapping boxes to the nearest half-centimeter.
+- **Save, Save As & Load** — Save overwrites the current file; Save As writes to a new location; Load opens any `.json` layout.
+- **Default Templates** — Save your current layout as the startup default (including canvas size and margins), loaded automatically on next launch.
+- **Settings Window** — Configure default canvas size, margins, grid spacing, and templates directory via File → Settings.
+- **Matplotlib Code Generation** — Automatically generate Python code that recreates your layout.
+- **FigureFromLayout** — Load saved layouts as Matplotlib figures programmatically.
+- **Undo/Redo** — Full undo/redo support via the Edit menu or Ctrl+Z / Ctrl+Y.
+- **Keyboard Shortcuts** — Delete, Ctrl+S, arrow keys for nudging.
+- **Multi-Select** — Shift+click or rubber-band select; align/distribute operations use the selection.
+- **Layout Aids** — Snap-to-guides while moving, overlap detection (orange outline), 90° rotation.
+- **Per-Side Margins** — Configure left, right, top, and bottom margins independently.
+- **Open Recent** — Track recently opened layouts.
+- **Auto Panel Labels** — Automatically assign sequential labels (a., b., c., ...) to panels.
+
+## Usage
+
+### GUI
+
+1. **Select a box:** Left-click on an axis box to select it (highlighted in red).
+2. **Choose Interaction Mode:** Use the radio buttons on the right panel for **Move** or **Resize**.
+3. **Add boxes:** Click the **New Panel** button.
+4. **Deselect:** Right-click anywhere on the canvas.
+5. **Optimize:** Click **Optimize** to snap all boxes to the nearest half-centimeter.
+6. **Save/Load:** Use **File → Save** (Ctrl+S) to overwrite the current file, **File → Save As...** to choose a new location, or **File → Load** to open a saved layout.
+7. **Default Template:** Use **File → Save as Default Template** to set the current layout (including canvas size and margins) as the startup default.
+8. **Settings:** Use **File → Settings** to configure default canvas size, margins, grid spacing, and templates directory.
+9. **Generate Code:** Click **Generate Code** to create a Matplotlib code snippet.
+
+### Programmatic: FigureFromLayout
+
+Once you have a layout saved, generate it directly in Python:
 
 ```python
-from axisblueprint.main import FigureFromLayout
+from axisblueprint import FigureFromLayout
 fig, axes = FigureFromLayout("default")
 ```
 
-Changing `default` to your saved layout name. This creates a `matplotlib.Figure` object, and a `List` which is the list of your ordered `matplotlib.axes` objects.
-
-Layouts are read from the default templates directory unless you pass a second argument: a path to a folder that contains your `*.json` layout files (for example a project-specific `layouts/` directory):
+Load from a custom directory:
 
 ```python
 fig, axes = FigureFromLayout("my_layout", "/path/to/my/layouts")
 ```
 
-Contributions are welcome! Please open issues or submit pull requests for bug fixes or feature improvements.
+Returns a `matplotlib.Figure` and a list of `matplotlib.axes.Axes` objects.
+
+## Layout File Format
+
+Layouts are saved as JSON files. The format includes versioning for forward compatibility:
+
+```json
+{
+  "version": 1,
+  "canvas": {
+    "width_cm": 21.0,
+    "height_cm": 29.7,
+    "margins": { "left": 1.0, "right": 1.0, "top": 1.0, "bottom": 1.0 }
+  },
+  "boxes": [
+    { "x": 1.0, "y": 1.0, "width": 9.25, "height": 6.675, "panel_label": "A" }
+  ]
+}
+```
+
+## API Reference
+
+### `AxisBox(x, y, width, height, panel_label="")`
+A single panel in the layout. Coordinates and dimensions are in centimeters.
+
+### `BlueprintBuilder()`
+Launch the Tkinter GUI.
+
+### `LayoutDesigner(parent)`
+Embed the layout designer in an existing Tkinter application.
+
+### `figure_from_layout(layout_name, layouts_dir=None)`
+Load a saved layout and return a Matplotlib figure with axes.
+
+### `generate_matplotlib_code(boxes, page_width_cm, page_height_cm)`
+Generate a Python script string for the given layout.
+
+## Configuration
+
+- **Settings:** `~/.config/axisblueprint/settings.json` — default canvas size, margins, grid spacing, and templates directory (editable via **File → Settings** in the GUI).
+- **Templates directory:** `~/.config/axisblueprint/templates/` — contains saved layouts and `default.json` (loaded on startup).
+- **Override:** Set the `AXISBLUEPRINT_TEMPLATES_DIR` environment variable to use a custom templates directory.
+- **Recent layouts:** `~/.config/axisblueprint/recent_layouts.json`
+
+## Contributing
+
+Contributions are welcome! Please open [issues](https://github.com/NikDrummond/AxisBlueprint/issues) or submit pull requests on [GitHub](https://github.com/NikDrummond/AxisBlueprint).
+
+### Development
+
+Clone and install in editable mode:
+
+```bash
+git clone https://github.com/NikDrummond/AxisBlueprint.git
+cd AxisBlueprint
+pip install -e ".[plot]"
+```
+
+Run tests:
+
+```bash
+python -m pytest tests/
+```
 
 ## License
 

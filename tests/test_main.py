@@ -12,7 +12,7 @@ from unittest.mock import patch
 import tkinter.filedialog as fd
 
 # Import from your package. Adjust the case as necessary.
-from AxisBlueprint.main import (
+from axisblueprint.main import (
     AxisBox,
     LayoutDesigner,
     FigureFromLayout,
@@ -113,7 +113,7 @@ class TestLayoutDesigner(unittest.TestCase):
     
     def test_generate_code_output(self):
         # Patch CodeDialog to capture the generated code instead of opening a dialog.
-        with patch("AxisBlueprint.designer.CodeDialog") as mock_code_dialog:
+        with patch("axisblueprint.designer.CodeDialog") as mock_code_dialog:
             self.ld.preview_code()
             # Verify that CodeDialog was called.
             mock_code_dialog.assert_called_once()

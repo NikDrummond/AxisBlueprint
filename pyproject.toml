@@ -1,21 +1,37 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "axisblueprint"
-version = "0.1.0"
-description = "Interactive layout designer for multi-panel scientific figures (Tkinter + Matplotlib export)."
+version = "0.2.0"
+description = "Interactive layout designer for multi-panel scientific figures"
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
     { name = "Nik Drummond", email = "nikolasdrummond@gmail.com" },
 ]
+keywords = [
+    "scientific-figures",
+    "figure-layout",
+    "matplotlib",
+    "tkinter",
+    "publication",
+    "plotting",
+]
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Visualization",
 ]
 dependencies = []
 
@@ -24,9 +40,15 @@ plot = ["matplotlib>=3.5"]
 
 [project.urls]
 Homepage = "https://github.com/NikDrummond/AxisBlueprint"
+Repository = "https://github.com/NikDrummond/AxisBlueprint"
+Issues = "https://github.com/NikDrummond/AxisBlueprint/issues"
+Documentation = "https://github.com/NikDrummond/AxisBlueprint#readme"
 
 [project.scripts]
-axisblueprint = "AxisBlueprint.main:BlueprintBuilder"
+axisblueprint = "axisblueprint.main:BlueprintBuilder"
 
 [tool.setuptools.packages.find]
-where = ["."]
+include = ["axisblueprint*"]
+
+[tool.setuptools.package-data]
+axisblueprint = ["templates/*.json"]

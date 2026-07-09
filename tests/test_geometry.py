@@ -2,8 +2,8 @@
 
 import unittest
 
-from AxisBlueprint.geometry import boxes_overlap, overlapping_box_indices
-from AxisBlueprint.models import AxisBox
+from axisblueprint.geometry import boxes_overlap, overlapping_box_indices
+from axisblueprint.models import AxisBox
 
 
 class TestGeometry(unittest.TestCase):

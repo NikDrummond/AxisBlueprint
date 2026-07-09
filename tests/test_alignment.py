@@ -1,13 +1,13 @@
 import unittest
 
-from AxisBlueprint.models import AxisBox
-from AxisBlueprint.alignment import (
+from axisblueprint.models import AxisBox
+from axisblueprint.alignment import (
     align_boxes_left,
     distribute_boxes_horizontally,
 )
-from AxisBlueprint.constants import default_panel_label
-from AxisBlueprint.export import generate_matplotlib_code
-from AxisBlueprint.layout import validate_box_dict
+from axisblueprint.constants import default_panel_label
+from axisblueprint.export import generate_matplotlib_code
+from axisblueprint.layout import validate_box_dict
 
 
 class TestAlignment(unittest.TestCase):
@@ -27,10 +27,10 @@ class TestAlignment(unittest.TestCase):
 
 class TestPanelLabels(unittest.TestCase):
     def test_default_panel_label(self):
-        self.assertEqual(default_panel_label(0), "A")
-        self.assertEqual(default_panel_label(3), "D")
-        self.assertEqual(default_panel_label(25), "Z")
-        self.assertEqual(default_panel_label(26), "AA")
+        self.assertEqual(default_panel_label(0), "a.")
+        self.assertEqual(default_panel_label(3), "d.")
+        self.assertEqual(default_panel_label(25), "z.")
+        self.assertEqual(default_panel_label(26), "aa.")
 
     def test_roundtrip_panel_label(self):
         box = validate_box_dict(

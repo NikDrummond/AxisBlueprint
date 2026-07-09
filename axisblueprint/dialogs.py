@@ -2,7 +2,7 @@
 
 import os
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 
 from .constants import CANVAS_PRESETS
 from .templates import get_templates_dir, sanitize_template_name
@@ -248,3 +248,163 @@ class CodeDialog(tk.Toplevel):
         self.clipboard_append(self.code_str)
         self.update()
         messagebox.showinfo("Copied", "Code copied to clipboard.", parent=self)
+
+
+class SettingsDialog(tk.Toplevel):
+    def __init__(self, master, settings, on_save):
+        super().__init__(master)
+        self.title("Settings")
+        self.settings = dict(settings)
+        self.on_save = on_save
+        self.resizable(False, False)
+        self.transient(master)
+        self.grab_set()
+
+        row = 0
+
+        tk.Label(self, text="Templates Directory:", anchor="w").grid(
+            row=row, column=0, sticky="w", padx=10, pady=(10, 0)
+        )
+        self.templates_dir_var = tk.StringVar(value=self.settings.get("templates_dir", ""))
+        self.templates_dir_entry = tk.Entry(
+            self, textvariable=self.templates_dir_var, width=40
+        )
+        self.templates_dir_entry.grid(row=row, column=1, padx=(5, 0), pady=(10, 0))
+        tk.Button(
+            self, text="Browse...", command=self._browse_templates_dir
+        ).grid(row=row, column=2, padx=(5, 10), pady=(10, 0))
+        row += 1
+
+        tk.Label(self, text="Leave empty to use default:").grid(
+            row=row, column=1, sticky="w", padx=(5, 0)
+        )
+        row += 1
+        default_path = os.path.join(
+            os.path.expanduser("~"), ".config", "axisblueprint", "templates"
+        )
+        tk.Label(self, text=default_path, fg="gray", anchor="w").grid(
+            row=row, column=1, sticky="w", padx=(5, 0), pady=(0, 10)
+        )
+        row += 1
+
+        sep = ttk.Separator(self, orient="horizontal")
+        sep.grid(row=row, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
+        row += 1
+
+        tk.Label(self, text="Default Canvas Size:", anchor="w").grid(
+            row=row, column=0, sticky="w", padx=10
+        )
+        self.canvas_width_var = tk.StringVar(
+            value=str(self.settings.get("default_canvas_width_cm", 21.0))
+        )
+        self.canvas_height_var = tk.StringVar(
+            value=str(self.settings.get("default_canvas_height_cm", 29.7))
+        )
+        w_entry = tk.Entry(self, textvariable=self.canvas_width_var, width=8)
+        w_entry.grid(row=row, column=1, sticky="w", padx=(5, 0))
+        tk.Label(self, text="x").grid(row=row, column=1, padx=(70, 0))
+        h_entry = tk.Entry(self, textvariable=self.canvas_height_var, width=8)
+        h_entry.grid(row=row, column=1, padx=(85, 0))
+        tk.Label(self, text="cm").grid(row=row, column=1, padx=(155, 0))
+        row += 1
+
+        sep2 = ttk.Separator(self, orient="horizontal")
+        sep2.grid(row=row, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
+        row += 1
+
+        tk.Label(self, text="Default Margins (cm):", anchor="w").grid(
+            row=row, column=0, sticky="w", padx=10
+        )
+        row += 1
+        margins = self.settings.get("default_margins", {})
+        self.margin_vars = {}
+        for i, (key, label_text) in enumerate(
+            [("left", "Left"), ("right", "Right"), ("top", "Top"), ("bottom", "Bottom")]
+        ):
+            var = tk.StringVar(value=str(margins.get(key, 1.0)))
+            self.margin_vars[key] = var
+            tk.Label(self, text=f"{label_text}:").grid(
+                row=row, column=0, sticky="e", padx=(20, 5)
+            )
+            tk.Entry(self, textvariable=var, width=8).grid(
+                row=row, column=1, sticky="w"
+            )
+            row += 1
+
+        sep3 = ttk.Separator(self, orient="horizontal")
+        sep3.grid(row=row, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
+        row += 1
+
+        tk.Label(self, text="Default Grid Spacing (cm):", anchor="w").grid(
+            row=row, column=0, sticky="w", padx=10
+        )
+        self.grid_spacing_var = tk.StringVar(
+            value=str(self.settings.get("default_grid_spacing_cm", 0.2))
+        )
+        tk.Entry(self, textvariable=self.grid_spacing_var, width=8).grid(
+            row=row, column=1, sticky="w", padx=(5, 0)
+        )
+        row += 1
+
+        sep4 = ttk.Separator(self, orient="horizontal")
+        sep4.grid(row=row, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
+        row += 1
+
+        btn_frame = tk.Frame(self)
+        btn_frame.grid(row=row, column=0, columnspan=3, pady=15)
+        tk.Button(btn_frame, text="Save", command=self._save).pack(
+            side=tk.LEFT, padx=5
+        )
+        tk.Button(btn_frame, text="Cancel", command=self.destroy).pack(
+            side=tk.LEFT, padx=5
+        )
+
+    def _browse_templates_dir(self):
+        path = filedialog.askdirectory(title="Select templates directory")
+        if path:
+            self.templates_dir_var.set(path)
+
+    def _save(self):
+        try:
+            w = float(self.canvas_width_var.get())
+            h = float(self.canvas_height_var.get())
+        except ValueError:
+            messagebox.showerror("Error", "Canvas dimensions must be numbers.", parent=self)
+            return
+        if w <= 0 or h <= 0:
+            messagebox.showerror("Error", "Canvas dimensions must be positive.", parent=self)
+            return
+
+        try:
+            gs = float(self.grid_spacing_var.get())
+        except ValueError:
+            messagebox.showerror("Error", "Grid spacing must be a number.", parent=self)
+            return
+        if gs <= 0:
+            messagebox.showerror("Error", "Grid spacing must be positive.", parent=self)
+            return
+
+        margins = {}
+        for key in ("left", "right", "top", "bottom"):
+            try:
+                v = float(self.margin_vars[key].get())
+            except ValueError:
+                messagebox.showerror(
+                    "Error", f"{key.capitalize()} margin must be a number.", parent=self
+                )
+                return
+            if v < 0:
+                messagebox.showerror(
+                    "Error", "Margins must be non-negative.", parent=self
+                )
+                return
+            margins[key] = v
+
+        self.settings["templates_dir"] = self.templates_dir_var.get().strip()
+        self.settings["default_canvas_width_cm"] = w
+        self.settings["default_canvas_height_cm"] = h
+        self.settings["default_margins"] = margins
+        self.settings["default_grid_spacing_cm"] = gs
+
+        self.on_save(self.settings)
+        self.destroy()
